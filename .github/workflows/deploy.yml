@@ -1,0 +1,14 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - name:  Plan
+        run: terraform plan
+        env:
+          TF_VAR_api_key: ${{ secrets.OKTA_API_KEY }}
