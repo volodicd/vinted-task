@@ -57,9 +57,8 @@ def callback():
 
     tokens = token_response.json()
     if 'access_token' not in tokens:
-        return f"❌ Token error: {tokens}"
+        return f" error: {tokens}"
 
-    # Get user info
     user_response = requests.get(f"{OKTA_ISSUER}/v1/userinfo",
                                  headers={'Authorization': f"Bearer {tokens['access_token']}"})
 

@@ -18,3 +18,4 @@ output "app_id" {
   description = "Okta App ID"
   value       = okta_app_oauth.test_app.id
 }
+

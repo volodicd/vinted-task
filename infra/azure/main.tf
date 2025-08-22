@@ -13,65 +13,58 @@ provider "azurerm" {
 }
 
 
-
 data "terraform_remote_state" "okta" {
   backend = "azurerm"
   config = {
     resource_group_name  = "tryout-RG"
     storage_account_name = "tfstatevinted434"
     container_name      = "tfstate"
-    key                 = "okta-dev.terraform.tfstate"
+    key                 = "okta.terraform.tfstate"
   }
 }
-
-
 
 
 data "azurerm_resource_group" "rg_group" {
   name = "tryout-RG"
 }
 
-resource "azurerm_container_registry" "test_registry" {
+resource "azurerm_container_registry" "main" {
   location            = data.azurerm_resource_group.rg_group.location
-  name                = "oktatestacr"
+  name                = var.container_reg_name
   resource_group_name = data.azurerm_resource_group.rg_group.name
   sku                 = "Basic"
   admin_enabled = true
 }
 
-resource "azurerm_log_analytics_workspace" "test_workspace" {
+resource "azurerm_log_analytics_workspace" "main" {
   location            = data.azurerm_resource_group.rg_group.location
-  name                = "okta-test-los"
+  name                = "${var.container_reg_name}-log"
   resource_group_name = data.azurerm_resource_group.rg_group.name
   retention_in_days = 30
 }
 
-resource "azurerm_container_app_environment" "test_environment" {
+resource "azurerm_container_app_environment" "main" {
   location            = data.azurerm_resource_group.rg_group.location
-  name                = "okta-test-env"
+  name                = "${var.container_reg_name}-env"
   resource_group_name = data.azurerm_resource_group.rg_group.name
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test_workspace.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
 }
 
 
 resource "azurerm_container_app" "test_container_app" {
-  name                = "okta-test-app"
+  name                = "${var.container_reg_name}-app"
   resource_group_name = data.azurerm_resource_group.rg_group.name
-  container_app_environment_id = azurerm_container_app_environment.test_environment.id
+  container_app_environment_id = azurerm_container_app_environment.main.id
   revision_mode = "Single"
 
   registry {
-    server   = azurerm_container_registry.test_registry.login_server
-    username = azurerm_container_registry.test_registry.admin_username
+    server   = azurerm_container_registry.main.login_server
+    username = azurerm_container_registry.main.admin_username
     password_secret_name = "registry-password"
   }
-
-
    template {
-
-
     container {
-      name   = "okta-test"
+      name   = var.container_name
       image = "oktatestacr.azurecr.io/oidc-flask:latest"
 
       cpu    = 0.25
@@ -91,7 +84,7 @@ resource "azurerm_container_app" "test_container_app" {
       }
       env {
         name  = "REDIRECT_URI"
-        value = "https://okta-test-app.${azurerm_container_app_environment.test_environment.default_domain}/auth/callback"
+        value = "https://${var.container_reg_name}-app.${azurerm_container_app_environment.main.default_domain}/auth/callback"
       }
       env {
         name  = "SECRET_KEY"
@@ -106,7 +99,7 @@ resource "azurerm_container_app" "test_container_app" {
   }
     secret {
     name  = "registry-password"
-    value = azurerm_container_registry.test_registry.admin_password
+    value = azurerm_container_registry.main.admin_password
   }
 
   ingress {

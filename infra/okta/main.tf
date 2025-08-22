@@ -20,23 +20,27 @@ resource "okta_app_oauth" "test_app" {
   type          = "web"
   grant_types   = ["authorization_code"]
   redirect_uris = ["http://localhost:8080/auth/callback",
-  "https://okta-test-app.lemonplant-b96601d2.westeurope.azurecontainerapps.io/auth/callback"]
+  "https://oktatestacr-app.gentlegrass-265232fc.westeurope.azurecontainerapps.io/auth/callback"]
   response_types = ["code"]
+  status = "ACTIVE"
 }
 
 
-resource "okta_user" "volodic" {
-  email      = "volodiaint@gmail.com"
-  first_name = "Volodymyr"
-  last_name  = "Nashkerskyi"
-  login      = "volodiaint@gmail.com"
-  password   = "SecurePassword123!"
+resource "okta_user" "test_users" {
+  for_each = var.test_users
+  email = each.value.email
+  first_name = each.value.first_name
+  last_name = each.value.last_name
+  login = each.value.email
+  password = var.default_password
+  status     = "ACTIVE"
 }
 
-resource "okta_app_user" "volodic_assignment" {
+resource "okta_app_user" "assignments" {
+  for_each = var.test_users
   app_id = okta_app_oauth.test_app.id
-  user_id =okta_user.volodic.id
-  username = "volodic"
+  user_id = okta_user.test_users[each.key].id
+  username = each.value.username
 }
 
 

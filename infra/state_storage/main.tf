@@ -52,7 +52,7 @@ output "container_name" {
 }
 
 output "backend_config" {
-  description = "copy"
+  description = "backend config"
   value = <<-EOT
 terraform {
   backend "azurerm" {

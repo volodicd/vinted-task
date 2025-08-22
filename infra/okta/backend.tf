@@ -3,6 +3,6 @@ terraform {
     resource_group_name  = "tryout-RG"
     storage_account_name = "tfstatevinted434"
     container_name      = "tfstate"
-    key                 = "okta-dev.terraform.tfstate"
+    key                 = "okta.terraform.tfstate"
   }
 }

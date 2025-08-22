@@ -10,8 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Okta
+      - name: Okta part
         working-directory: ./infra/okta
         run: |
           terraform init
@@ -19,7 +22,7 @@ jobs:
         env:
           TF_VAR_api_key: ${{ secrets.OKTA_API_KEY }}
 
-      - name: Deploy Azure
+      - name:  Azure part
         working-directory: ./infra/azure
         run: |
           terraform init
